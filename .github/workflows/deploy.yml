@@ -40,12 +40,13 @@ jobs:
         run: npx convex deploy
 
   deploy-vercel:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && secrets.VERCEL_TOKEN != '' && vars.VERCEL_ORG_ID != '' && vars.VERCEL_PROJECT_ID != '' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ui
     env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
@@ -60,8 +61,23 @@ jobs:
         with:
           node-version: 22
 
+      - name: Check Vercel configuration
+        id: vercel-ready
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Pull Vercel project settings
-        run: npx vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+        if: ${{ steps.vercel-ready.outputs.enabled == 'true' }}
+        run: npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Deploy Vercel production build
-        run: npx vercel deploy --prod --token="${{ secrets.VERCEL_TOKEN }}"
+        if: ${{ steps.vercel-ready.outputs.enabled == 'true' }}
+        run: npx vercel deploy --prod --token="$VERCEL_TOKEN"
+
+      - name: Skip Vercel deploy when credentials are unavailable
+        if: ${{ steps.vercel-ready.outputs.enabled != 'true' }}
+        run: echo "Skipping Vercel deploy; configure VERCEL_TOKEN to enable main-branch production releases."
