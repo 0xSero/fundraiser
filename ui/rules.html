@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campaign Rules</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <p class="brand">Sybil Solutions</p>
+      <div class="top-actions">
+        <a class="top-link" href="index.html">Fund</a>
+        <a class="top-link" href="about.html">About</a>
+        <a class="top-link active" href="rules.html">Rules</a>
+        <p class="status-live"><span class="status-dot"></span> Live</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+    <section class="page-hero fade-up">
+      <h1>Campaign rules</h1>
+      <p class="lead">Minimal policy, explicit constraints, no hidden conditions.</p>
+    </section>
+
+    <section class="page-section fade-up delay-1">
+      <div class="card-grid">
+        <div class="card">
+          <p class="card-label">Accepted Payments</p>
+          <ul>
+            <li>Card via Stripe.</li>
+            <li>EVM: Base, Polygon, Optimism, Ethereum Mainnet.</li>
+            <li>EVM assets: ETH and USDC.</li>
+            <li>Solana assets: SOL and USDC.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <p class="card-label">Donor Identity</p>
+          <ul>
+            <li>Anonymous by default.</li>
+            <li>Optional donor name at donation time.</li>
+            <li>Public feed shows donor as anonymous when no name supplied.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <p class="card-label">Refunds</p>
+          <ul>
+            <li>Refund window: within 14 days of donation.</li>
+            <li>Stripe donations only for MVP.</li>
+            <li>Request via: sherifcherfa@gmail.com</li>
+            <li>Returned amount: donation minus Stripe fees.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <p class="card-label">Publishing</p>
+          <ul>
+            <li>RSS includes donation events.</li>
+            <li>RSS includes Hugging Face activity highlights.</li>
+            <li>RSS includes GitHub activity highlights.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-section narrative fade-up delay-2">
+      <p class="section-title">What this enables</p>
+      <p>The funded hardware will be used to enable research and development into making local AI possible regardless of hardware levels, at maximum possible speed and intelligence. All work is published openly on <a href="https://huggingface.co" target="_blank" rel="noreferrer" style="color: var(--accent-pop); text-decoration: none; border-bottom: 1px solid var(--border-strong); transition: border-color 0.15s;">Hugging Face</a> — models, datasets, benchmarks, and training runs.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Sybil Solutions &middot; Compute Cluster Fund &middot; 2026</p>
+  </footer>
+</body>
+</html>

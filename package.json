@@ -1,0 +1,28 @@
+{
+  "name": "fundraiser",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Crowdfunding data model scope for Convex + Stripe + crypto rails",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "validate:model": "tsx scripts/validate-model.ts",
+    "check": "npm run typecheck && npm run validate:model",
+    "convex:codegen": "convex codegen",
+    "convex:deploy": "convex deploy"
+  },
+  "keywords": [
+    "convex",
+    "stripe",
+    "crypto",
+    "crowdfunding"
+  ],
+  "dependencies": {
+    "convex": "^1.33.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

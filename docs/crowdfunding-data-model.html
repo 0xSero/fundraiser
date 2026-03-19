@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crowdfunding Data Model Scope</title>
+    <style>
+      :root {
+        --bg: #111315;
+        --panel: #181b1f;
+        --ink: #f1f4f8;
+        --muted: #a9b2bd;
+        --accent: #7dd3fc;
+        --border: #2c323a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+        background: radial-gradient(circle at top right, #1b2530, var(--bg) 40%);
+        color: var(--ink);
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 32px auto;
+        padding: 0 16px 32px;
+      }
+      .card {
+        background: color-mix(in srgb, var(--panel) 92%, black 8%);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 14px;
+      }
+      h1, h2 { margin: 0 0 10px; }
+      h1 { font-size: 24px; }
+      h2 { font-size: 16px; color: var(--accent); }
+      p, li { color: var(--muted); line-height: 1.45; }
+      code {
+        color: var(--ink);
+        background: #0f1317;
+        border: 1px solid #26303a;
+        border-radius: 6px;
+        padding: 1px 6px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        padding: 8px 4px;
+        font-size: 14px;
+      }
+      th { color: var(--ink); }
+      .pill {
+        display: inline-block;
+        border: 1px solid #2f4555;
+        border-radius: 999px;
+        padding: 4px 10px;
+        margin: 0 6px 6px 0;
+        color: #b8e7ff;
+      }
+      .small { font-size: 13px; }
+      a { color: #9cd8ff; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <h1>Crowdfunding Data Model Scope</h1>
+        <p>
+          Convex-first schema design for card + crypto donations, milestone meter, RSS output,
+          donor donation visibility, and Stripe refund-all workflow under explicit policy constraints.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Milestones</h2>
+        <div class="pill">$10,000 -> 1 RTX Pro</div>
+        <div class="pill">$50,000 -> 4 RTX Pro</div>
+        <div class="pill">$100,000 -> Dell Pro Max with GB3000</div>
+      </section>
+
+      <section class="card">
+        <h2>Payment Rails</h2>
+        <div class="pill">stripe_card</div>
+        <div class="pill">base_eth</div>
+        <div class="pill">base_usdc</div>
+        <div class="pill">polygon_eth</div>
+        <div class="pill">polygon_usdc</div>
+        <div class="pill">optimism_eth</div>
+        <div class="pill">optimism_usdc</div>
+        <div class="pill">ethereum_eth</div>
+        <div class="pill">ethereum_usdc</div>
+        <div class="pill">solana_sol</div>
+        <div class="pill">solana_usdc</div>
+        <p class="small">All rails normalize to USD cents in <code>donations</code> for meter consistency.</p>
+      </section>
+
+      <section class="card">
+        <h2>Core Tables</h2>
+        <table>
+          <thead>
+            <tr><th>Table</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>campaigns</code></td><td>Campaign state + funded meter cache</td></tr>
+            <tr><td><code>fundingMilestones</code></td><td>Threshold steps + reached timestamps</td></tr>
+            <tr><td><code>donors</code></td><td>Email/wallet/stripe identity anchor</td></tr>
+            <tr><td><code>donations</code></td><td>Canonical card + crypto donation ledger</td></tr>
+            <tr><td><code>stripeWebhookEvents</code></td><td>Raw Stripe webhook ingestion for idempotency and audit</td></tr>
+            <tr><td><code>refundPolicies</code></td><td>Stripe net-of-fees policy with 14-day window and email request channel</td></tr>
+            <tr><td><code>refundBatches</code></td><td>Mass refund jobs</td></tr>
+            <tr><td><code>refundItems</code></td><td>Per-donation refund execution and status</td></tr>
+            <tr><td><code>campaignUpdates</code></td><td>Public/private timeline events (RSS source)</td></tr>
+            <tr><td><code>donorAccessSessions</code></td><td>Tokenized donor access sessions</td></tr>
+            <tr><td><code>ledgerEntries</code></td><td>Auditable credits/debits</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>Interaction Contracts</h2>
+        <ul>
+          <li><code>DonationIntentInput</code> creates card/crypto intent metadata.</li>
+          <li><code>DonorPortalService</code> lists donations by donor or receipt token.</li>
+          <li><code>RssFeedService</code> renders public campaign timeline entries for donations, GitHub publishing, and Hugging Face publishing.</li>
+          <li><code>RefundService</code> creates and tracks Stripe-only refund batches, net of Stripe fees.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>MVP Scope vs Out of Scope</h2>
+        <p class="small">
+          In scope: donations, milestones, donor portal, RSS, Stripe refund-all workflow via
+          <code>sherifcherfa@gmail.com</code> within 14 days.
+        </p>
+        <p class="small">
+          Out of scope: admin analytics depth, multi-campaign support, advanced KYC tiers.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Convex + Keys</h2>
+        <p class="small">
+          This model uses Convex schema + TypeScript contracts in this repo. Local credentials are in <code>.env.local</code> and ignored by git.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Webhook Runtime Wiring</h2>
+        <p class="small">
+          Convex HTTP route: <code>POST /stripe-webhook</code><br />
+          Signature validation: Stripe <code>v1</code> HMAC using <code>STRIPE_WEBHOOK_SECRET</code><br />
+          Idempotency key: <code>stripeWebhookEvents.eventId</code>
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Audit Artifacts</h2>
+        <p>
+          Source schema: <code>/Users/sero/ai/fundraiser/convex/schema.ts</code><br />
+          Scope spec: <code>/Users/sero/ai/fundraiser/docs/crowdfunding-data-model.md</code><br />
+          Validation output: <code>/Users/sero/ai/fundraiser/test-output/results.json</code>
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Primary References</h2>
+        <p class="small">
+          <a href="https://docs.convex.dev/database/schemas">Convex schema docs</a> |
+          <a href="https://docs.convex.dev/database/indexes">Convex indexes</a> |
+          <a href="https://docs.stripe.com/refunds">Stripe refunds docs</a> |
+          <a href="https://solana.com/docs/payments">Solana payments docs</a>
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
