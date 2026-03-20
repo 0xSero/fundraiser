@@ -524,6 +524,61 @@ function showCryptoInstructions(container, cryptoData, amountUsd, receiptToken) 
 
   const copyBtn = box.querySelector(".copy-btn");
   container.appendChild(box);
+
+  // Transaction hash submission
+  const txSection = el("div", { style: "margin-top: 20px; border-top: 1px solid var(--border-subtle); padding-top: 16px;" },
+    el("p", { className: "section-title" }, "Confirm your payment"),
+    el("p", { style: "font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;" },
+      "After sending, paste your transaction hash below to confirm the donation."),
+    el("input", {
+      type: "text",
+      placeholder: "Transaction hash (e.g. 0x... or Solana signature)",
+      style: "width: 100%; padding: 12px 14px; border: 1px solid var(--border-default); background: var(--surface-inset); color: var(--text-primary); font-family: monospace; font-size: 13px; outline: none;",
+      onInput: (e) => {
+        confirmBtn.disabled = !e.target.value.trim();
+      },
+    }),
+  );
+  container.appendChild(txSection);
+
+  const txInput = txSection.querySelector("input");
+
+  const confirmBtn = el("button", {
+    className: "cta",
+    type: "button",
+    style: "margin-top: 12px;",
+    disabled: true,
+    onClick: async () => {
+      const txHash = txInput.value.trim();
+      if (!txHash) return;
+
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Confirming...";
+
+      try {
+        const res = await fetchJson(`${API_BASE}/api/confirm-crypto-tx`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ receiptToken, txHash }),
+        });
+
+        if (res.success) {
+          showConfirmation(container, amountUsd);
+        } else {
+          confirmBtn.textContent = "Confirm payment";
+          confirmBtn.disabled = false;
+          const errorMsg = res.error || "Failed to confirm transaction";
+          txSection.appendChild(el("p", { style: "color: var(--red); font-size: 13px; margin-top: 8px;" }, errorMsg));
+        }
+      } catch (err) {
+        confirmBtn.textContent = "Confirm payment";
+        confirmBtn.disabled = false;
+        txSection.appendChild(el("p", { style: "color: var(--red); font-size: 13px; margin-top: 8px;" },
+          err instanceof Error ? err.message : "Failed to confirm transaction"));
+      }
+    },
+  }, "Confirm payment");
+  container.appendChild(confirmBtn);
 }
 
 // ─── Confirmation screen ──────────────────────────────

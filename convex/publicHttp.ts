@@ -315,3 +315,63 @@ ${itemsXml}
     },
   });
 });
+
+export const confirmCryptoTx = httpAction(async (ctx, request) => {
+  if (request.method === "OPTIONS") {
+    return optionsResponse();
+  }
+
+  if (request.method !== "POST") {
+    return jsonResponse(405, { error: "Method not allowed" });
+  }
+
+  let body: { receiptToken?: string; txHash?: string };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return jsonResponse(400, { error: "Invalid JSON payload" });
+  }
+
+  const receiptToken = body.receiptToken?.trim();
+  const txHash = body.txHash?.trim();
+
+  if (!receiptToken || !txHash) {
+    return jsonResponse(400, { error: "Missing receiptToken or txHash" });
+  }
+
+  const donation = await ctx.runQuery(internal.liveData.getDonationByReceiptToken, { receiptToken });
+  if (!donation) {
+    return jsonResponse(404, { error: "Donation not found" });
+  }
+
+  if (donation.status === "confirmed") {
+    return jsonResponse(200, { success: true, alreadyConfirmed: true, donationId: donation._id });
+  }
+
+  if (donation.paymentKind !== "crypto") {
+    return jsonResponse(400, { error: "Not a crypto donation" });
+  }
+
+  const rail = donation.paymentRailCode;
+  let expectedAddress: string | undefined;
+
+  if (rail.startsWith("monero_")) {
+    expectedAddress = process.env.MONERO_DONATION_ADDRESS?.trim();
+  } else if (rail.startsWith("solana_")) {
+    expectedAddress = process.env.SOLANA_DONATION_ADDRESS?.trim();
+  } else {
+    expectedAddress = process.env.EVM_DONATION_ADDRESS?.trim();
+  }
+
+  const result = await ctx.runMutation(internal.liveData.confirmCryptoDonation, {
+    receiptToken,
+    txHash,
+  });
+
+  return jsonResponse(200, {
+    success: result.success,
+    donationId: result.donationId,
+    error: result.error,
+    expectedAddress,
+  });
+});

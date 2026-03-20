@@ -147,6 +147,30 @@ export const listDonationsByReceiptToken = internalQuery({
   },
 });
 
+export const getDonationByReceiptToken = internalQuery({
+  args: {
+    receiptToken: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const donation = await ctx.db
+      .query("donations")
+      .withIndex("by_receipt_token", (q) => q.eq("publicReceiptToken", args.receiptToken))
+      .unique();
+
+    if (!donation) return null;
+
+    return {
+      _id: donation._id,
+      paymentRailCode: donation.paymentRailCode,
+      paymentKind: donation.paymentKind,
+      status: donation.status,
+      grossUsdCents: donation.grossUsdCents,
+      toAddress: donation.toAddress,
+      txHash: donation.txHash,
+    };
+  },
+});
+
 export const createDonationIntentRecord = internalMutation({
   args: {
     campaignSlug: v.string(),
@@ -361,5 +385,79 @@ export const applyStripeEventToDonation = internalMutation({
       applied: true,
       donationId: donation._id,
     };
+  },
+});
+
+export const confirmCryptoDonation = internalMutation({
+  args: {
+    receiptToken: v.string(),
+    txHash: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const donation = await ctx.db
+      .query("donations")
+      .withIndex("by_receipt_token", (q) => q.eq("publicReceiptToken", args.receiptToken))
+      .unique();
+
+    if (!donation) {
+      return { success: false, error: "Donation not found" };
+    }
+
+    if (donation.status === "confirmed") {
+      return { success: false, error: "Already confirmed" };
+    }
+
+    if (donation.paymentKind !== "crypto") {
+      return { success: false, error: "Not a crypto donation" };
+    }
+
+    const now = Date.now();
+
+    await ctx.db.patch(donation._id, {
+      status: "confirmed",
+      txHash: args.txHash,
+      confirmedAt: now,
+      updatedAt: now,
+    });
+
+    const campaign = await ctx.db.get(donation.campaignId);
+    if (campaign) {
+      const newFundedUsdCents = campaign.fundedUsdCents + donation.netUsdCents;
+      await ctx.db.patch(campaign._id, {
+        fundedUsdCents: newFundedUsdCents,
+        status: newFundedUsdCents >= campaign.fundingGoalUsdCents ? "funded" : campaign.status,
+        updatedAt: now,
+      });
+
+      const milestones = await ctx.db
+        .query("fundingMilestones")
+        .withIndex("by_campaign_and_step", (q) => q.eq("campaignId", campaign._id))
+        .collect();
+
+      for (const milestone of milestones) {
+        if (!milestone.reachedAt && newFundedUsdCents >= milestone.targetUsdCents) {
+          await ctx.db.patch(milestone._id, {
+            reachedAt: now,
+            updatedAt: now,
+          });
+        }
+      }
+
+      await ctx.db.insert("campaignUpdates", {
+        campaignId: campaign._id,
+        type: "donation_confirmed",
+        title: "Donation confirmed",
+        summary: `${(donation.grossUsdCents / 100).toLocaleString("en-US", {
+          style: "currency",
+          currency: "USD",
+        })} confirmed via ${donation.paymentRailCode}.`,
+        visibility: "public",
+        relatedDonationId: donation._id,
+        publishedAt: now,
+        createdAt: now,
+      });
+    }
+
+    return { success: true, donationId: donation._id };
   },
 });

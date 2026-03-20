@@ -2,6 +2,7 @@ import { httpRouter } from "convex/server";
 
 import {
   campaignSnapshot,
+  confirmCryptoTx,
   corsPreflight,
   donationIntent,
   donorDonations,
@@ -31,6 +32,18 @@ http.route({
 
 http.route({
   path: "/api/donation-intent",
+  method: "OPTIONS",
+  handler: corsPreflight,
+});
+
+http.route({
+  path: "/api/confirm-crypto-tx",
+  method: "POST",
+  handler: confirmCryptoTx,
+});
+
+http.route({
+  path: "/api/confirm-crypto-tx",
   method: "OPTIONS",
   handler: corsPreflight,
 });
