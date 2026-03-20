@@ -83,14 +83,27 @@ function renderMeter(container, snapshot) {
 }
 
 // ─── Donation stream ───────────────────────────────────
+let donationsExpanded = false;
+const DONATIONS_DEFAULT_LIMIT = 5;
+
 function renderDonations(container, rows) {
   container.innerHTML = "";
   if (!rows.length) {
     container.appendChild(el("p", { style: "color: var(--text-muted); font-size: 14px;" }, "No donations yet. Be the first."));
     return;
   }
+
+  const total = rows.length;
+  const visible = donationsExpanded ? rows : rows.slice(0, DONATIONS_DEFAULT_LIMIT);
+  const hasMore = total > DONATIONS_DEFAULT_LIMIT && !donationsExpanded;
+
+  const header = el("div", { style: "display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;" },
+    el("span", { style: "font-size: 12px; color: var(--text-muted);" }, `${total} donation${total === 1 ? "" : "s"}`),
+  );
+  container.appendChild(header);
+
   const list = el("ul", { className: "stream" });
-  for (const row of rows) {
+  for (const row of visible) {
     list.appendChild(el("li", null,
       el("div", null,
         el("div", { className: "stream-who" }, row.donor || "anon"),
@@ -103,6 +116,31 @@ function renderDonations(container, rows) {
     ));
   }
   container.appendChild(list);
+
+  if (hasMore) {
+    const moreBtn = el("button", {
+      className: "see-more-btn",
+      type: "button",
+      onClick: () => {
+        donationsExpanded = true;
+        renderDonations(container, rows);
+      },
+    }, `See ${total - DONATIONS_DEFAULT_LIMIT} more`);
+    container.appendChild(moreBtn);
+  }
+
+  if (donationsExpanded && total > DONATIONS_DEFAULT_LIMIT) {
+    const lessBtn = el("button", {
+      className: "see-more-btn",
+      type: "button",
+      style: "margin-top: 8px;",
+      onClick: () => {
+        donationsExpanded = false;
+        renderDonations(container, rows);
+      },
+    }, "Show less");
+    container.appendChild(lessBtn);
+  }
 }
 
 // ─── Updates stream ────────────────────────────────────
