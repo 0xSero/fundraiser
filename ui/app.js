@@ -144,11 +144,24 @@ function renderDonations(container, rows) {
 }
 
 // ─── Updates stream ────────────────────────────────────
+let updatesExpanded = false;
+const UPDATES_DEFAULT_LIMIT = 5;
+
 function renderUpdates(container, rows) {
   container.innerHTML = "";
   if (!rows.length) return;
+
+  const total = rows.length;
+  const visible = updatesExpanded ? rows : rows.slice(0, UPDATES_DEFAULT_LIMIT);
+  const hasMore = total > UPDATES_DEFAULT_LIMIT && !updatesExpanded;
+
+  const header = el("div", { style: "display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;" },
+    el("span", { style: "font-size: 12px; color: var(--text-muted);" }, `${total} update${total === 1 ? "" : "s"}`),
+  );
+  container.appendChild(header);
+
   const list = el("ul", { className: "stream" });
-  for (const row of rows) {
+  for (const row of visible) {
     list.appendChild(el("li", { style: "flex-direction: column; align-items: flex-start;" },
       el("div", { className: "stream-type" }, `${row.type.replaceAll("_", " ")} · ${timeAgo(row.publishedAt)}`),
       el("div", { className: "stream-title" }, row.title),
@@ -156,6 +169,31 @@ function renderUpdates(container, rows) {
     ));
   }
   container.appendChild(list);
+
+  if (hasMore) {
+    const moreBtn = el("button", {
+      className: "see-more-btn",
+      type: "button",
+      onClick: () => {
+        updatesExpanded = true;
+        renderUpdates(container, rows);
+      },
+    }, `See ${total - UPDATES_DEFAULT_LIMIT} more`);
+    container.appendChild(moreBtn);
+  }
+
+  if (updatesExpanded && total > UPDATES_DEFAULT_LIMIT) {
+    const lessBtn = el("button", {
+      className: "see-more-btn",
+      type: "button",
+      style: "margin-top: 8px;",
+      onClick: () => {
+        updatesExpanded = false;
+        renderUpdates(container, rows);
+      },
+    }, "Show less");
+    container.appendChild(lessBtn);
+  }
 }
 
 // ─── Donate form ───────────────────────────────────────
