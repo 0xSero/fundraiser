@@ -72,6 +72,7 @@ const PAYMENT_RAILS = [
   { code: "solana_sol", kind: "crypto", displayName: "Solana SOL", assetSymbol: "SOL", chain: "solana", supportsRefunds: false },
   { code: "solana_usdc", kind: "crypto", displayName: "Solana USDC", assetSymbol: "USDC", chain: "solana", supportsRefunds: false },
   { code: "monero_xmr", kind: "crypto", displayName: "Monero XMR", assetSymbol: "XMR", chain: "monero", supportsRefunds: false },
+  { code: "bitcoin_btc", kind: "crypto", displayName: "Bitcoin BTC", assetSymbol: "BTC", chain: "bitcoin", supportsRefunds: false },
 ] as const;
 
 export const bootstrapCampaign = mutation({

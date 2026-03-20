@@ -17,6 +17,7 @@ function inferChainFromPaymentRailCode(paymentRailCode: string): string | undefi
   if (paymentRailCode.startsWith("optimism_")) return "optimism";
   if (paymentRailCode.startsWith("ethereum_")) return "ethereum";
   if (paymentRailCode.startsWith("monero_")) return "monero";
+  if (paymentRailCode.startsWith("bitcoin_")) return "bitcoin";
   return undefined;
 }
 
@@ -24,6 +25,14 @@ function resolveCryptoDestination(paymentRailCode: string): { chain: string; add
   const chain = inferChainFromPaymentRailCode(paymentRailCode);
   if (!chain) {
     throw new Error(`Unsupported crypto payment rail: ${paymentRailCode}`);
+  }
+
+  if (chain === "bitcoin") {
+    const bitcoinAddress = process.env.BITCOIN_DONATION_ADDRESS?.trim();
+    if (!bitcoinAddress) {
+      throw new Error("Missing BITCOIN_DONATION_ADDRESS");
+    }
+    return { chain, address: bitcoinAddress };
   }
 
   if (chain === "monero") {
@@ -355,7 +364,9 @@ export const confirmCryptoTx = httpAction(async (ctx, request) => {
   const rail = donation.paymentRailCode;
   let expectedAddress: string | undefined;
 
-  if (rail.startsWith("monero_")) {
+  if (rail.startsWith("bitcoin_")) {
+    expectedAddress = process.env.BITCOIN_DONATION_ADDRESS?.trim();
+  } else if (rail.startsWith("monero_")) {
     expectedAddress = process.env.MONERO_DONATION_ADDRESS?.trim();
   } else if (rail.startsWith("solana_")) {
     expectedAddress = process.env.SOLANA_DONATION_ADDRESS?.trim();

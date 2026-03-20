@@ -211,7 +211,7 @@ function renderDonate(container, snapshot, onComplete) {
     if (!chains[chain]) chains[chain] = [];
     chains[chain].push(r);
   }
-  const chainOrder = ["base", "polygon", "optimism", "ethereum", "solana", "monero"];
+  const chainOrder = ["base", "polygon", "optimism", "ethereum", "solana", "monero", "bitcoin"];
 
   let selectedMethod = "card"; // "card" or "crypto"
   let selectedRailCode = cardRails[0]?.code ?? "stripe_card";
