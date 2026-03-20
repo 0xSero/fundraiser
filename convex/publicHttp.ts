@@ -16,6 +16,7 @@ function inferChainFromPaymentRailCode(paymentRailCode: string): string | undefi
   if (paymentRailCode.startsWith("polygon_")) return "polygon";
   if (paymentRailCode.startsWith("optimism_")) return "optimism";
   if (paymentRailCode.startsWith("ethereum_")) return "ethereum";
+  if (paymentRailCode.startsWith("monero_")) return "monero";
   return undefined;
 }
 
@@ -23,6 +24,14 @@ function resolveCryptoDestination(paymentRailCode: string): { chain: string; add
   const chain = inferChainFromPaymentRailCode(paymentRailCode);
   if (!chain) {
     throw new Error(`Unsupported crypto payment rail: ${paymentRailCode}`);
+  }
+
+  if (chain === "monero") {
+    const moneroAddress = process.env.MONERO_DONATION_ADDRESS?.trim();
+    if (!moneroAddress) {
+      throw new Error("Missing MONERO_DONATION_ADDRESS");
+    }
+    return { chain, address: moneroAddress };
   }
 
   if (chain === "solana") {

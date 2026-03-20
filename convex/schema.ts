@@ -69,6 +69,7 @@ export default defineSchema({
       v.literal("ethereum_usdc"),
       v.literal("solana_sol"),
       v.literal("solana_usdc"),
+      v.literal("monero_xmr"),
     ),
     kind: v.union(v.literal("card"), v.literal("crypto")),
     displayName: v.string(),
